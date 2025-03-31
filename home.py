@@ -14,10 +14,17 @@ def get_bot_response(user_input):
   llm = ChatGroq(model="gemma2-9b-it", groq_api_key= groq_api_key)
   return llm.invoke(user_input).content
 
+def get_studyplan_response(user_input):
+  prompt ="""You are a study planner. Depending on {user_input} please
+  come with a study plan in tabular format. Consider study time starts at 5 pm on weekdays and till 9 pm
+  . Include some time for dinner and workout. On weekend study time can start from 9 AM and go on till 8 pm.
+  Include lunch, dinner and workout time as well. """
+  llm = ChatGroq(model="gemma2-9b-it", groq_api_key= groq_api_key)
+  return llm.invoke(prompt).content
 
 # Sidebar with menu
 st.sidebar.title("Chose an option")
-sidebar_option = st.sidebar.radio("Choose an option:", ["Schedule a Meeting", "Chat with Bot","Post your question to experts" ,"Show your questions"])
+sidebar_option = st.sidebar.radio("Choose an option:", ["Schedule a Meeting", "Chat with SME Bot","Get your study plan","Post your question to experts" ,"Show your previous questions"])
 st.title("conNEcT")
 # Main app layout
 if sidebar_option == "Schedule a Meeting":
@@ -41,11 +48,25 @@ if sidebar_option == "Schedule a Meeting":
         st.write(f"**Duration**: {duration} minutes")
         st.write(f"**Meeting End Time**: {(meeting_datetime + timedelta(minutes=duration)).strftime('%Y-%m-%d %H:%M:%S')}")
         st.write(f"**Attendees**: {', '.join(participants)}")
-elif sidebar_option == "Chat with Bot":
+elif sidebar_option == "Chat with SME Bot":
     st.header("Chat with Virtual Assistant")
 
     # Text input for chatting with the bot
     user_input = st.text_input("Ask a question:")
+
+    # If the user asks something, show a response
+    if user_input:
+        st.session_state.questions.append(user_input)
+        # Uncomment below to integrate OpenAI GPT for dynamic responses
+        bot_response = get_bot_response(user_input)
+
+        # Static response for the chatbot
+        #bot_response = "I'm your assistant! How can I help with your questions about meetings or anything else?"
+
+        st.write(f"**Bot:** {bot_response}")
+elif sidebar_option=="Get your study plan":
+  # Text input for chatting with the bot
+    user_input = st.text_area("Enter subjects, number of chapters in each subject and Exam dates:")
 
     # If the user asks something, show a response
     if user_input:
@@ -64,7 +85,7 @@ elif sidebar_option == "Post your question to experts":
   if st.button("Submit"):
     st.session_state.questions.append(question)
 
-elif sidebar_option == "Show your questions":
+elif sidebar_option == "Show your previous questions":
 
   if st.session_state.questions:
       st.write("### Previous Questions:")
